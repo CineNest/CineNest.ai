@@ -22,16 +22,18 @@ docker-compose up --build
 
 
 ### Pull the Node.js Docker image:
-'docker pull node:22-alpine'
+docker pull node:22-alpine
 
 ### Create a Node.js container and start a Shell session:
-'docker run -it --rm --entrypoint sh node:22-alpine'
+'docker run -it --rm --entrypoint sh node:22-alpine
 
 ### Verify the Node.js version:
-'node -v' #### Should print "v22.20.0".
+node -v' #### Should print "v22.20.0"
 
 ### Verify npm version:
-'npm -v' #### Should print "10.9.3".
+npm -v
+#### Should print "10.9.3"
+
 
 4. Open the app / n8n at the URL printed in the compose logs (by default configured below).
 
