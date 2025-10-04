@@ -38,12 +38,7 @@ pytest
 See `deployment/docker-compose.yml` and `deployment/Dockerfile` for local deployment instructions.
 
 ## Environment variables (example)
-- POSTGRES_USER
-- POSTGRES_PASSWORD
-- POSTGRES_DB
-- N8N_BASIC_AUTH_ACTIVE
-- N8N_BASIC_AUTH_USER
-- N8N_BASIC_AUTH_PASSWORD
+- Envvironment variables are not supported in n8n community edition
 
 ## Known limitations & TODOs
 - This repository contains a starter n8n workflow and scaffolding. Connect real credentials before use.
