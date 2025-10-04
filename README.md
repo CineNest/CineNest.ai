@@ -16,8 +16,6 @@ CineNest.ai is an ai integrated film production system which aims to Transform f
 Film production assistance just  a click away 
 
 
-## Requirements (Repository checklist)
-This repository follows the required structure for the competition.
 
 ## How to run locally (Docker)
 1. Install Docker & Docker Compose.
