@@ -1,0 +1,980 @@
+{
+  "name": "CineFlow AI - Main Orchestrator (Google Sheets)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "script-upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b8011f94-6e39-433f-9b49-162cfbaa9e0d",
+      "name": "Script Gateway Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        208
+      ],
+      "webhookId": "4cfa2f86-a4ab-4fd9-a22b-12efebfe943b"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crew-database",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a637131a-f113-4283-9cfe-11b2b7c3d62b",
+      "name": "Crew Database Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        400
+      ],
+      "webhookId": "e04c7e74-02f0-471d-bfb5-4e42afd41d60"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "location-database",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "653fabfe-d5fb-49ed-8338-0b6e22cdfeb1",
+      "name": "Location Database Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        608
+      ],
+      "webhookId": "dd2ce79e-c37a-4e49-90df-c03914e39b70"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "legal-compliance",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "672d8ae5-1b8e-4f6d-a29a-8339bec5f15c",
+      "name": "Legal Compliance Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        800
+      ],
+      "webhookId": "2de2c4f9-ce1a-498d-8de8-4b6217f7a1b3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "budget-management",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "164867b3-1192-451f-8fff-df5a74e53e3f",
+      "name": "Budget Management Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        1008
+      ],
+      "webhookId": "31b806d3-5c53-4866-a51f-9d60f811fc4a"
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a script analysis AI. Extract:\n1. Scene breakdown (numbers, locations, descriptions)\n2. Character analysis (main characters & roles)\n3. Location requirements\n4. Props list\n5. VFX needs & complexity\n6. Estimated duration per scene\n7. Overall budget estimation\n\nReturn structured JSON with clear keys.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.body?.script_content || JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "8f1d176c-d6d1-4a0d-b631-ad85c0dc99d8",
+      "name": "Script AI Parser",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        -880,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are an AI router for a film production system. Based on input, decide workflows:\n- budget_threshold_exceeded → finance_workflow, budget_oversight (HIGH)\n- permit_deadline_approaching → operations_workflow, admin_workflow (HIGH)\n- crew_availability_conflict → hr_workflow, operations_workflow (MEDIUM)\n- vfx_shot_identified → vfx_workflow, budget_oversight (MEDIUM)\n- design_requirements_extracted → design_workflow (MEDIUM)\n- contract_needs_approval → admin_workflow, finance_workflow (HIGH)\n\nOutput JSON:\n{ \"triggers\":[], \"workflows\":[], \"priority\":\"\", \"context\":\"...\" }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "19930e86-f8d7-4273-aa24-343438d67176",
+      "name": "AI Router Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const routingDecision = JSON.parse($input.first().json.message.content);\n  const workflows = routingDecision.workflows || [];\n  return workflows.map(wf => ({\n    json: {\n      workflow: wf,\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  }));\n} catch (e) {\n  return [{\n    json: {\n      workflow: 'admin_workflow',\n      data: $input.first().json,\n      priority: 'low',\n      trigger: ['error'],\n      error: e.message\n    }\n  }];\n}"
+      },
+      "id": "e85687b8-7ecf-4047-97e4-3b359273b383",
+      "name": "Workflow Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "finance_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "finance"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "operations_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "operations"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "hr_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "hr"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "admin_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "admin"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "design_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "design"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "vfx_workflow",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "vfx"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.workflow }}",
+                    "rightValue": "budget_oversight",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "budget_oversight"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16a242fd-123d-42ce-a3b5-cb9bdf6f6064",
+      "name": "Switch Workflows",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.1,
+      "position": [
+        -224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a finance workflow automation assistant. Tasks:\n1. Invoice processing → extract, validate, match to budget, flag discrepancies\n2. Budget variance analysis → compare actual vs planned, report, recommend\n3. Payment scheduling → prioritize, check cashflow, schedule transfers\n4. Cost optimization → suggest savings, alternatives, negotiation\n\nReturn structured JSON { invoices, variance_report, payment_plan, cost_optimization, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d5954e41-6485-424a-a426-057b7f688292",
+      "name": "Finance Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are an operations workflow automation assistant. Tasks:\n1. Shoot scheduling → optimize order, minimize downtime, factor weather\n2. Equipment allocation → requirements, availability, rentals, track\n3. Transport logistics → route optimization, assign vehicles, pickups\n4. Catering → meal counts, dietary, scheduling\n\nReturn structured JSON { shoot_schedule, equipment_plan, transportation, catering, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9c21b997-2f27-458a-a775-f64c36a91ad0",
+      "name": "Operations Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        144
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are an HR workflow automation assistant. Tasks:\n1. Crew matching → match skills & availability\n2. Timesheet processing → validate hours, wages, union compliance\n3. Onboarding → contracts, docs, orientations, payroll\n4. Performance tracking → collect feedback, reviews\n\nReturn structured JSON { crew_matching, timesheets, onboarding, performance, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cbe8ab97-4e96-4533-b596-299aca9052df",
+      "name": "HR Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        288
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are an admin workflow automation assistant. Tasks:\n1. Permit mgmt → identify, autofill, track, reminders\n2. Contract generation → template, fill, approval, signatures\n3. Insurance → verify, track certificates, renewals\n4. Document mgmt → organize, version control, access\n\nReturn structured JSON { permits, contracts, insurance, documents, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dfbe8574-3019-4e4a-82b4-83b3e3e456de",
+      "name": "Admin Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        432
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a design workflow automation assistant. Tasks:\n1. Production design breakdown → categorize, estimate, assign\n2. Asset library mgmt → tag, search, version, rights\n3. Mood boards → analyze tone, curate visuals, palettes\n4. Vendor coordination → match, quotes, deliveries\n\nReturn structured JSON { design_breakdown, assets, mood_boards, vendors, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e02ab255-5315-4aae-aff6-6962e835bd57",
+      "name": "Design Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        560
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a VFX workflow automation assistant. Tasks:\n1. VFX shots → scan script, ID complexity, count\n2. Vendor bidding → packages, send, compare bids\n3. Shot tracking → monitor, flag delays, QC alerts\n4. Asset delivery → track, version, approval\n\nReturn structured JSON { vfx_shots, vendor_bids, tracking, deliveries, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "69fc7278-721c-4aff-a235-0ffaad360cbb",
+      "name": "VFX Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        704
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a budget oversight automation assistant. Tasks:\n1. Real-time monitoring → costs, actuals, variances, overruns\n2. Approvals → threshold breaches, route, track decisions\n3. Forecasting → burn rate, projections, scenarios\n\nReturn structured JSON { monitoring, approvals, forecasting, summary }",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ebb2616a-2add-4fa7-9c65-a935d144ba92",
+      "name": "Budget Oversight Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        848
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "jh8dOEunvIiVV1od",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Format data for Google Sheets\nconst workflowName = $json.workflow || 'unknown';\nconst priority = $json.priority || 'low';\nconst timestamp = new Date().toISOString();\n\n// Extract summary from AI response\nlet summary = '';\nlet detailedData = '';\ntry {\n  if ($json.data?.message?.content) {\n    const content = JSON.parse($json.data.message.content);\n    summary = content.summary || JSON.stringify(content).substring(0, 200);\n    detailedData = JSON.stringify(content);\n  } else if ($json.message?.content) {\n    const content = JSON.parse($json.message.content);\n    summary = content.summary || JSON.stringify(content).substring(0, 200);\n    detailedData = JSON.stringify(content);\n  } else {\n    summary = JSON.stringify($json.data || $json).substring(0, 200);\n    detailedData = JSON.stringify($json.data || $json);\n  }\n} catch (e) {\n  summary = 'Error parsing data';\n  detailedData = JSON.stringify($json);\n}\n\n// Truncate if too long\nif (detailedData.length > 40000) {\n  detailedData = detailedData.substring(0, 40000) + '... [truncated]';\n}\n\nreturn {\n  json: {\n    workflow_name: workflowName,\n    priority: priority,\n    timestamp: timestamp,\n    summary: summary,\n    detailed_data: detailedData,\n    trigger_source: $json.trigger || 'webhook',\n    row_data: [\n      timestamp,\n      workflowName,\n      priority,\n      summary,\n      detailedData\n    ]\n  }\n};"
+      },
+      "id": "7b64f777-e347-4847-a6ee-48ed463dd16d",
+      "name": "Format Data for Google Sheets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "YOUR_GOOGLE_SHEET_ID_HERE",
+        "sheetName": "Workflow Results",
+        "columns": "Timestamp,Workflow Name,Priority,Summary,Detailed Data",
+        "options": {}
+      },
+      "id": "bb586035-311f-46c6-91dd-7d2e4e99d014",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        400,
+        512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "av656T3qaZqGD2Zi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowResults = $input.all();\nconst report = {\n  timestamp: new Date().toISOString(),\n  workflows_executed: workflowResults.length,\n  results: workflowResults.map(item => {\n    const originalData = item.json.original_data || item.json;\n    return {\n      workflow: originalData.workflow || 'unknown',\n      priority: originalData.priority || 'low',\n      summary: originalData.message?.content || JSON.stringify(originalData.data || {}).substring(0, 200)\n    };\n  }),\n  metrics: {\n    high_priority: workflowResults.filter(w => (w.json.original_data?.priority || w.json.priority) === 'high').length,\n    medium_priority: workflowResults.filter(w => (w.json.original_data?.priority || w.json.priority) === 'medium').length,\n    low_priority: workflowResults.filter(w => (w.json.original_data?.priority || w.json.priority) === 'low').length\n  },\n  recipients: ['producer@cineflow.ai', 'pm@cineflow.ai']\n};\nreturn { json: report };"
+      },
+      "id": "01fa443e-88d5-49dd-9832-9e99f2bd4ee0",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high_priority_check",
+              "leftValue": "={{ $json.metrics.high_priority }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "91e4cf78-0f03-4ee5-9cd3-d27b2c631e41",
+      "name": "Check High Priority Alerts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ '🚨 HIGH PRIORITY ALERTS\\n' + $json.results.filter(r => r.priority==='high').map(r => `• ${r.workflow}: ${r.summary}`).join('\\n') }}",
+        "otherOptions": {}
+      },
+      "id": "a5c25fc4-a16d-4a69-b891-e51a589be121",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        400
+      ],
+      "webhookId": "6b6226e4-a4b8-44aa-8b59-053b30e04e29"
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@cineflow.ai",
+        "toEmail": "={{ $json.recipients.join(',') }}",
+        "subject": "CineFlow Alert: High Priority Items Require Attention",
+        "emailFormat": "text",
+        "text": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {}
+      },
+      "id": "8951e0b2-bfd9-4f4a-bf85-2a7cfb51bd37",
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        512
+      ],
+      "webhookId": "da99f369-49d9-4d94-b39d-4b5886a72934"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "0e511ce5-04f3-498d-b6b0-80b2b2775502",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1024,
+        608
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Script Gateway Webhook": {
+      "main": [
+        [
+          {
+            "node": "Script AI Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Script AI Parser": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crew Database Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Location Database Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Legal Compliance Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Management Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Router Agent": {
+      "main": [
+        [
+          {
+            "node": "Workflow Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Router": {
+      "main": [
+        [
+          {
+            "node": "Switch Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Workflows": {
+      "main": [
+        [
+          {
+            "node": "Finance Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Operations Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HR Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Design Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "VFX Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Budget Oversight Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Operations Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HR Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Design Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VFX Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Oversight Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Data for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data for Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Check High Priority Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check High Priority Alerts": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1dcefe4a-3001-488a-aec0-3feda66a9c69",
+  "meta": {
+    "instanceId": "6788a9f04af61f35610d6f0c9572f3ec9eae4b3fa2a42f5bc6f6e826e362b2a9"
+  },
+  "id": "P0VptBFss2LKEGCJ",
+  "tags": []
+}
