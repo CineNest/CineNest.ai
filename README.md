@@ -1,13 +1,19 @@
 
 # CineNest.ai
 
-**Elevator pitch:** CineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent  and efficient  Environment
+ CineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent  and efficient  Environment
 
 ## Team
-- **Adhil Rifayin k s** — Team Lead (AI resources specialist) — 007rifayinadhil@gmail.comm
-- **Deethu p** — Frontend — deethup911@gmail.com
-- **Abhinav p** — Backend — abhinavvkd10@gmail.com
-- **Muhammed Fahad E V** — AI Automation Specialist — fahadman40@gmail.com
+
+| Name                  | Role                         | Contact                        |
+|-----------------------|------------------------------|--------------------------------|
+| Adhil Rifayin K S     | Team Lead                    | 007rifayinadhil@gmail.comm     |
+| Deethu P              | Frontend Developer           | deethup911@gmail.com           |
+| Abhinav P             | Backend Developer            | abhinavvkd10@gmail.com         |
+| Muhammed Fahad E V    | AI Automation Specialist     | fahadman40@gmail.com           |
+
+CineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent  and efficient  Environment 
+Film production assistance just  a click away 
 
 
 ## Requirements (Repository checklist)
@@ -41,6 +47,7 @@ See `deployment/docker-compose.yml` and `deployment/Dockerfile` for local deploy
 
 ## Known limitations & TODOs
 - This repository contains a starter n8n workflow and scaffolding. Connect real credentials before use.
+- We are using a community edition of n8n where some features of n8n are hidden under a paywall
 - TODO: Add unit tests for backend modules.
 - TODO: Add Kubernetes manifests (if deploying to k8s).
 
@@ -57,5 +64,4 @@ Quick start
 Tests 
 
 
-environmment Variables 
 
