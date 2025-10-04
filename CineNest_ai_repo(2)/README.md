@@ -35,6 +35,19 @@ npm -v
 #### Should print "10.9.3"
 
 
+##Make sure Node.js is installed:
+node -v
+npm -v
+
+##Install Firebase CLI
+##Use npm to install Firebase tools globally:
+npm install -g firebase-tools
+
+##Login to Firebase
+##You need to authenticate your Google account:
+firebase login
+
+
 4. Open the app / n8n at the URL printed in the compose logs (by default configured below).
 
 ## How to run tests
