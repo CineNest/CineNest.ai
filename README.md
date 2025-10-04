@@ -1,4 +1,4 @@
-# CineNest.ai - CnineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent and efficient Environment
+# CineNest.ai - CineNest.ai is an ai integrated film production system which aims to transform film making into a fully automated , transparent and efficient Environment
 
 | Name                  | Role                         | Contact                        |
 |-----------------------|------------------------------|--------------------------------|
