@@ -1,0 +1,30 @@
+Unit and integration testing in n8n workflows is an emerging practice, and there are community strategies as well as some recent framework previews and quality assurance guidelines available.
+
+### Core Approaches
+
+- *Manual Test Execution:* Use n8n’s built-in “Execute Workflow” feature to test with sample data, validating each node’s logic interactively. For more repeatable results, snapshot and version realistic test payloads and states.
+- *API-driven Testing:* Trigger workflows (or individual nodes) using the n8n API via HTTP to run automated scripts that validate expected inputs and outputs. This approach supports headless and CI/CD environments, and can be scripted using tools like curl or Postman.
+- *Community Test Workflows:* The official n8n-io/test-workflows GitHub repository provides real workflow files for node testing, useful for reference and as templates for your own tests.
+- *Preview Unit Test Framework:* There are efforts toward an official unit testing framework for n8n, allowing for test nodes with assertions that run automatically on activation/save. The core ideas include embedding test cases and assertions within the workflow’s metadata, and running them alongside workflow executions.
+- *Test Data and Environment Parity:* Use fixtures/seed scripts and environment-specific configuration to ensure tests resemble production, avoid hard-coded secrets, and isolate external service effects.
+
+### Sample Testing Workflow
+
+1. *Create test-specific workflows* mirroring production logic but with additional “assert” or verification steps using code nodes.
+2. *Seed test databases and mock webhooks* to supply input data.
+3. *Execute via the n8n API* from a CI system or script.
+4. *Parse and log outputs*; assert results using code nodes or external scripts that analyze workflow logs/executions.
+
+### Example Repository/File Structure
+
+- /workflows/test/employeeSync.test.json (workflow file: includes test, asserts, and comments)
+- /test/seed-db.sql (test data fixture)
+- /scripts/run-integration-tests.sh (shell script: POST test events & parse results)
+
+
+### Best Practices
+
+- Maintain test payload fixtures.
+- Instrument workflows with detailed logs.
+- Feed results into CI/CD dashboards.[3]
+- Use feature flags or environment variables to isolate testing logic from production. 
