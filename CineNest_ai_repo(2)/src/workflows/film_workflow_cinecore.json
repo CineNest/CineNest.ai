@@ -1,0 +1,701 @@
+{
+  "system_name": "CineFlow AI - Intelligent Production Workflow Orchestrator",
+  "version": "1.0.0",
+  "description": "AI-powered film production workflow automation with multi-gateway input processing and intelligent routing",
+  
+  "input_gateways": {
+    "script_gateway": {
+      "id": "script_input",
+      "enabled": true,
+      "supported_formats": ["pdf", "fdx", "fountain", "txt", "docx"],
+      "processing": {
+        "nlp_extraction": true,
+        "scene_breakdown": true,
+        "character_analysis": true,
+        "location_extraction": true,
+        "props_identification": true,
+        "vfx_requirements": true,
+        "estimated_duration": true
+      },
+      "ai_models": ["gpt-4", "claude"],
+      "webhook_endpoint": "/api/v1/gateway/script"
+    },
+    
+    "crew_database_gateway": {
+      "id": "crew_input",
+      "enabled": true,
+      "data_structure": {
+        "crew_members": {
+          "fields": ["id", "name", "role", "department", "rate", "availability", "skills", "certifications", "contact", "location", "past_projects"],
+          "indexing": ["role", "availability", "location"]
+        }
+      },
+      "integrations": ["google_sheets", "airtable", "csv_upload", "api"],
+      "real_time_sync": true,
+      "webhook_endpoint": "/api/v1/gateway/crew"
+    },
+    
+    "location_database_gateway": {
+      "id": "location_input",
+      "enabled": true,
+      "data_structure": {
+        "locations": {
+          "fields": ["id", "name", "type", "address", "coordinates", "capacity", "cost_per_day", "amenities", "permits_required", "restrictions", "photos", "availability_calendar", "contact"],
+          "indexing": ["type", "cost_per_day", "permits_required"]
+        }
+      },
+      "features": {
+        "map_visualization": true,
+        "weather_api_integration": true,
+        "distance_calculator": true,
+        "permit_status_tracking": true
+      },
+      "webhook_endpoint": "/api/v1/gateway/locations"
+    },
+    
+    "legal_compliance_gateway": {
+      "id": "legal_input",
+      "enabled": true,
+      "modules": {
+        "permits_licenses": {
+          "types": ["filming_permit", "drone_permit", "road_closure", "sound_permit", "pyrotechnics"],
+          "auto_application_forms": true,
+          "status_tracking": true,
+          "deadline_alerts": true
+        },
+        "contracts": {
+          "templates": ["crew_contract", "location_agreement", "talent_release", "nda", "vendor_contract"],
+          "e_signature_integration": true,
+          "approval_workflow": true
+        },
+        "insurance": {
+          "types": ["general_liability", "equipment", "cast_insurance", "vehicle"],
+          "certificate_tracking": true,
+          "renewal_reminders": true
+        },
+        "union_compliance": {
+          "rules_database": ["SAG-AFTRA", "DGA", "IATSE"],
+          "overtime_calculator": true,
+          "meal_penalty_tracker": true
+        }
+      },
+      "webhook_endpoint": "/api/v1/gateway/legal"
+    },
+    
+    "budget_management_gateway": {
+      "id": "budget_input",
+      "enabled": true,
+      "categories": [
+        "above_the_line",
+        "production_costs",
+        "post_production",
+        "equipment_rental",
+        "location_costs",
+        "crew_wages",
+        "talent_fees",
+        "vfx_costs",
+        "insurance",
+        "contingency"
+      ],
+      "features": {
+        "real_time_tracking": true,
+        "variance_analysis": true,
+        "forecast_projections": true,
+        "approval_thresholds": true,
+        "cost_optimization_ai": true,
+        "invoice_processing": true
+      },
+      "integrations": ["quickbooks", "xero", "csv_import"],
+      "webhook_endpoint": "/api/v1/gateway/budget"
+    }
+  },
+  
+  "ai_router_agent": {
+    "id": "central_router",
+    "model": "gpt-4-turbo",
+    "capabilities": {
+      "intent_classification": true,
+      "context_awareness": true,
+      "priority_scoring": true,
+      "workflow_orchestration": true,
+      "conflict_resolution": true
+    },
+    "routing_rules": [
+      {
+        "trigger": "budget_threshold_exceeded",
+        "routes_to": ["finance_workflow", "budget_oversight"],
+        "priority": "high"
+      },
+      {
+        "trigger": "permit_deadline_approaching",
+        "routes_to": ["operations_workflow", "admin_workflow"],
+        "priority": "high"
+      },
+      {
+        "trigger": "crew_availability_conflict",
+        "routes_to": ["hr_workflow", "operations_workflow"],
+        "priority": "medium"
+      },
+      {
+        "trigger": "vfx_shot_identified",
+        "routes_to": ["vfx_workflow", "budget_oversight"],
+        "priority": "medium"
+      },
+      {
+        "trigger": "design_requirements_extracted",
+        "routes_to": ["design_workflow"],
+        "priority": "medium"
+      },
+      {
+        "trigger": "contract_needs_approval",
+        "routes_to": ["admin_workflow", "finance_workflow"],
+        "priority": "high"
+      }
+    ],
+    "webhook_endpoint": "/api/v1/router"
+  },
+  
+  "workflows": {
+    "finance_workflow": {
+      "id": "finance_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "invoice_processing",
+          "ai_enabled": true,
+          "actions": ["extract_data", "validate", "match_to_budget", "flag_discrepancies"]
+        },
+        {
+          "task": "budget_variance_analysis",
+          "ai_enabled": true,
+          "actions": ["compare_actual_vs_planned", "generate_report", "recommend_adjustments"]
+        },
+        {
+          "task": "payment_scheduling",
+          "ai_enabled": true,
+          "actions": ["prioritize_payments", "check_cashflow", "schedule_transfers"]
+        },
+        {
+          "task": "cost_optimization",
+          "ai_enabled": true,
+          "actions": ["identify_savings", "suggest_alternatives", "negotiate_rates"]
+        }
+      ],
+      "integrations": ["accounting_software", "banking_api", "payment_gateway"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "operations_workflow": {
+      "id": "operations_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "shoot_schedule_optimization",
+          "ai_enabled": true,
+          "actions": ["analyze_script", "optimize_location_order", "minimize_crew_downtime", "consider_weather", "generate_shooting_schedule"]
+        },
+        {
+          "task": "equipment_allocation",
+          "ai_enabled": true,
+          "actions": ["identify_requirements", "check_availability", "book_rentals", "track_inventory"]
+        },
+        {
+          "task": "transportation_logistics",
+          "ai_enabled": true,
+          "actions": ["route_optimization", "vehicle_assignment", "coordinate_pickups"]
+        },
+        {
+          "task": "catering_coordination",
+          "ai_enabled": true,
+          "actions": ["calculate_meal_counts", "dietary_accommodations", "schedule_deliveries"]
+        }
+      ],
+      "integrations": ["google_calendar", "maps_api", "weather_api"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "hr_workflow": {
+      "id": "hr_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "crew_matching",
+          "ai_enabled": true,
+          "actions": ["analyze_requirements", "match_skills", "check_availability", "suggest_candidates"]
+        },
+        {
+          "task": "timesheet_processing",
+          "ai_enabled": true,
+          "actions": ["collect_hours", "validate_overtime", "calculate_wages", "flag_union_violations"]
+        },
+        {
+          "task": "onboarding_automation",
+          "ai_enabled": true,
+          "actions": ["send_contracts", "collect_documents", "schedule_orientations", "setup_payroll"]
+        },
+        {
+          "task": "performance_tracking",
+          "ai_enabled": false,
+          "actions": ["collect_feedback", "generate_reviews"]
+        }
+      ],
+      "integrations": ["docusign", "bamboohr", "payroll_system"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "admin_workflow": {
+      "id": "admin_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "permit_management",
+          "ai_enabled": true,
+          "actions": ["identify_required_permits", "auto_fill_applications", "track_status", "send_reminders"]
+        },
+        {
+          "task": "contract_generation",
+          "ai_enabled": true,
+          "actions": ["select_template", "populate_fields", "route_for_approval", "track_signatures"]
+        },
+        {
+          "task": "insurance_compliance",
+          "ai_enabled": true,
+          "actions": ["verify_coverage", "track_certificates", "alert_renewals"]
+        },
+        {
+          "task": "document_management",
+          "ai_enabled": true,
+          "actions": ["organize_files", "version_control", "access_management"]
+        }
+      ],
+      "integrations": ["docusign", "dropbox", "google_drive"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "design_workflow": {
+      "id": "design_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "production_design_breakdown",
+          "ai_enabled": true,
+          "actions": ["extract_design_requirements", "categorize_by_department", "estimate_costs", "assign_designers"]
+        },
+        {
+          "task": "asset_library_management",
+          "ai_enabled": true,
+          "actions": ["tag_assets", "search_optimization", "version_control", "rights_tracking"]
+        },
+        {
+          "task": "mood_board_generation",
+          "ai_enabled": true,
+          "actions": ["analyze_script_tone", "curate_references", "generate_color_palettes"]
+        },
+        {
+          "task": "vendor_coordination",
+          "ai_enabled": true,
+          "actions": ["match_vendors", "request_quotes", "track_deliveries"]
+        }
+      ],
+      "integrations": ["figma", "miro", "frame_io"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "vfx_workflow": {
+      "id": "vfx_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "vfx_shot_identification",
+          "ai_enabled": true,
+          "actions": ["scan_script", "identify_vfx_requirements", "categorize_complexity", "estimate_shots"]
+        },
+        {
+          "task": "vendor_bidding",
+          "ai_enabled": true,
+          "actions": ["prepare_shot_packages", "distribute_to_vendors", "compare_bids", "recommend_selection"]
+        },
+        {
+          "task": "shot_tracking",
+          "ai_enabled": true,
+          "actions": ["monitor_progress", "flag_delays", "quality_check_alerts"]
+        },
+        {
+          "task": "asset_delivery_management",
+          "ai_enabled": true,
+          "actions": ["track_deliverables", "version_control", "approval_routing"]
+        }
+      ],
+      "integrations": ["shotgrid", "frame_io", "aspera"],
+      "outputs_to": "dynamic_reporting"
+    },
+    
+    "budget_oversight": {
+      "id": "budget_oversight_wf",
+      "enabled": true,
+      "automation_tasks": [
+        {
+          "task": "real_time_monitoring",
+          "ai_enabled": true,
+          "actions": ["aggregate_all_costs", "update_actuals", "calculate_variances", "predict_overruns"]
+        },
+        {
+          "task": "approval_routing",
+          "ai_enabled": true,
+          "actions": ["identify_threshold_breaches", "route_to_approvers", "track_decisions"]
+        },
+        {
+          "task": "financial_forecasting",
+          "ai_enabled": true,
+          "actions": ["analyze_burn_rate", "project_final_costs", "scenario_modeling"]
+        }
+      ],
+      "outputs_to": "dynamic_reporting"
+    }
+  },
+  
+  "dynamic_reporting": {
+    "id": "reporting_engine",
+    "enabled": true,
+    "report_types": [
+      {
+        "name": "production_dashboard",
+        "frequency": "real_time",
+        "components": ["budget_summary", "schedule_status", "crew_allocation", "permit_status", "risk_indicators"]
+      },
+      {
+        "name": "daily_production_report",
+        "frequency": "daily",
+        "components": ["scenes_completed", "hours_worked", "equipment_used", "incidents", "tomorrow_schedule"]
+      },
+      {
+        "name": "financial_summary",
+        "frequency": "weekly",
+        "components": ["spend_by_category", "variance_analysis", "forecast_to_completion", "cash_flow"]
+      },
+      {
+        "name": "executive_overview",
+        "frequency": "weekly",
+        "components": ["project_health_score", "key_milestones", "risk_summary", "decision_items"]
+      }
+    ],
+    "visualization": {
+      "charts": ["bar", "line", "pie", "gantt", "heatmap"],
+      "real_time_updates": true,
+      "export_formats": ["pdf", "excel", "powerpoint"]
+    },
+    "outputs_to": "dashboard_alerts"
+  },
+  
+  "dashboard_alerts": {
+    "id": "dashboard_system",
+    "enabled": true,
+    "dashboard_features": {
+      "real_time_metrics": true,
+      "customizable_widgets": true,
+      "role_based_views": ["producer", "line_producer", "pm", "department_head"],
+      "mobile_responsive": true,
+      "dark_mode": true
+    },
+    "alert_system": {
+      "channels": ["in_app", "email", "sms", "slack", "teams"],
+      "priority_levels": ["critical", "high", "medium", "low"],
+      "alert_types": [
+        {
+          "type": "budget_overrun",
+          "threshold": "5%",
+          "recipients": ["producer", "line_producer", "finance"]
+        },
+        {
+          "type": "permit_expiring",
+          "threshold": "7_days",
+          "recipients": ["line_producer", "location_manager"]
+        },
+        {
+          "type": "crew_overtime_risk",
+          "threshold": "approaching_union_limits",
+          "recipients": ["line_producer", "1st_ad"]
+        },
+        {
+          "type": "equipment_unavailable",
+          "threshold": "immediate",
+          "recipients": ["line_producer", "key_grip"]
+        },
+        {
+          "type": "weather_risk",
+          "threshold": "24_hours",
+          "recipients": ["producer", "line_producer", "1st_ad"]
+        },
+        {
+          "type": "schedule_delay",
+          "threshold": "1_hour",
+          "recipients": ["line_producer", "1st_ad"]
+        }
+      ],
+      "smart_escalation": true,
+      "snooze_options": true
+    },
+    "ai_insights": {
+      "enabled": true,
+      "features": ["anomaly_detection", "predictive_alerts", "recommendation_engine", "natural_language_queries"]
+    }
+  },
+  
+  "technical_stack": {
+    "backend": {
+      "framework": "FastAPI (Python)",
+      "rationale": "Fast to build, async support, auto-docs"
+    },
+    "frontend": {
+      "framework": "React + Vite",
+      "ui_library": "Shadcn/ui + Tailwind CSS",
+      "rationale": "Rapid development, pre-built components"
+    },
+    "database": {
+      "primary": "SQLite",
+      "cache": "Redis (optional)",
+      "rationale": "Zero-config setup for hackathon, upgrade to PostgreSQL post-demo"
+    },
+    "ai_services": {
+      "providers": ["OpenAI API"],
+      "use_cases": ["routing", "nlp", "recommendations", "document_processing"]
+    },
+    "integrations": {
+      "authentication": "Skip for hackathon",
+      "file_storage": "Local filesystem",
+      "webhooks": "Webhook.site for testing",
+      "notifications": "Console logs + in-app only"
+    }
+  },
+  
+  "implementation_roadmap": {
+    "realistic_scope_for_24h": {
+      "must_have_core": [
+        "Script upload + AI parsing (OpenAI API)",
+        "AI Router with 2-3 routing rules",
+        "2 key workflows (Finance + Operations) with mock automation",
+        "Simple dashboard with live metrics",
+        "Basic alert system"
+      ],
+      "nice_to_have_if_time": [
+        "Additional workflows (HR, Admin)",
+        "Location/Crew database integration",
+        "Advanced visualizations"
+      ],
+      "demo_focused": [
+        "Pre-populate sample data",
+        "Scripted demo flow",
+        "Focus on AI routing showcase"
+      ]
+    },
+    "hour_0_4": {
+      "phase": "Foundation + Quick Wins",
+      "team_split": {
+        "backend_dev": [
+          "Setup FastAPI project with uvicorn",
+          "SQLite database (faster than PostgreSQL setup)",
+          "OpenAI API integration for script parsing",
+          "Basic CRUD endpoints for script/budget/crew"
+        ],
+        "frontend_dev": [
+          "Vite + React project setup",
+          "Install Shadcn/ui + Tailwind",
+          "Create basic layouts (Dashboard, Upload page)",
+          "Setup React Router"
+        ]
+      },
+      "deliverable": "Working script upload that calls OpenAI API"
+    },
+    "hour_4_10": {
+      "phase": "Core Features",
+      "team_split": {
+        "backend_dev": [
+          "AI Router logic (prompt engineering with OpenAI)",
+          "Webhook endpoints for script processing",
+          "Finance workflow: budget tracking + variance calc",
+          "Operations workflow: schedule optimization (basic algo)",
+          "Mock notification system (console logs or simple email)"
+        ],
+        "frontend_dev": [
+          "Script upload form with file handling",
+          "Dashboard with 4-6 key metric cards",
+          "Simple data visualization (Recharts)",
+          "Workflow status indicators",
+          "Alert notification UI component"
+        ]
+      },
+      "deliverable": "End-to-end flow: Upload script -> AI processes -> Routes to workflows -> Dashboard updates"
+    },
+    "hour_10_16": {
+      "phase": "Integration + Data Flow",
+      "team_split": {
+        "backend_dev": [
+          "Connect AI Router to workflow triggers",
+          "Implement budget oversight calculations",
+          "Create reporting aggregation endpoint",
+          "Seed database with demo data"
+        ],
+        "frontend_dev": [
+          "Build workflow detail pages (Finance, Operations)",
+          "Create budget tracking table/chart",
+          "Add filtering/search to dashboard",
+          "Implement alert popup system",
+          "Responsive design polish"
+        ]
+      },
+      "deliverable": "Functional system with 2 complete workflows + live dashboard"
+    },
+    "hour_16_20": {
+      "phase": "Demo Preparation",
+      "team_split": {
+        "backend_dev": [
+          "API testing and bug fixes",
+          "Optimize AI prompts for better responses",
+          "Add error handling",
+          "Create demo script scenarios (3-4 different scripts)"
+        ],
+        "frontend_dev": [
+          "UI polish and animations",
+          "Add loading states",
+          "Create demo mode with pre-loaded data",
+          "Build presentation slides in the app itself"
+        ]
+      },
+      "deliverable": "Polished demo-ready application"
+    },
+    "hour_20_24": {
+      "phase": "Final Polish + Pitch Prep",
+      "full_team": [
+        "Run through complete demo flow 5+ times",
+        "Record backup demo video (in case of live demo issues)",
+        "Prepare pitch deck highlighting: Problem -> Solution -> Demo -> Impact",
+        "Document architecture diagram",
+        "Get 2 hours sleep (important!)",
+        "Practice 5-minute pitch"
+      ],
+      "deliverable": "Competition-ready submission with working demo"
+    }
+  },
+  
+  "reality_check": {
+    "what_to_cut_if_behind": {
+      "first": ["HR workflow", "Admin workflow", "Design workflow", "VFX workflow"],
+      "second": ["Location database gateway", "Legal compliance gateway", "Advanced visualizations"],
+      "third": ["Real-time WebSocket updates", "Email notifications", "Mobile responsive design"],
+      "last_resort": ["Keep only script upload -> AI routing -> Budget tracking -> Dashboard"]
+    },
+    "what_never_to_cut": [
+      "Script upload with AI parsing (the WOW factor)",
+      "AI Router showing intelligent decision-making",
+      "At least 1 complete workflow (Finance recommended)",
+      "Dashboard with live data",
+      "Working demo with sample data"
+    ]
+  },
+  
+  "technical_shortcuts": {
+    "use_these_to_save_time": {
+      "no_auth": "Skip authentication for hackathon - add later",
+      "sqlite": "Use SQLite instead of PostgreSQL - setup in 30 seconds",
+      "mock_apis": "Mock external integrations (weather, maps) - return fake data",
+      "shadcn_ui": "Use pre-built components - don't design from scratch",
+      "openai_only": "Skip Claude - just use OpenAI API for everything",
+      "no_docker": "Run locally - skip containerization",
+      "hardcode_configs": "Hardcode settings - skip config management",
+      "console_logs": "Use console.log instead of proper logging initially"
+    },
+    "libraries_that_save_time": {
+      "backend": [
+        "FastAPI (auto-generated docs)",
+        "SQLAlchemy (ORM - no raw SQL)",
+        "Pydantic (validation built-in)",
+        "python-multipart (file uploads)"
+      ],
+      "frontend": [
+        "Shadcn/ui (copy-paste components)",
+        "Recharts (charts in 10 lines)",
+        "React Query (API state management)",
+        "Lucide React (1000+ icons)"
+      ]
+    }
+  },
+  
+  "team_composition_recommendation": {
+    "minimum_team": "2 people (1 backend, 1 frontend)",
+    "optimal_team": "3-4 people (2 backend, 1 frontend, 1 design/demo prep)",
+    "roles": {
+      "backend_lead": "FastAPI + OpenAI integration expert",
+      "frontend_lead": "React + UI/UX focused",
+      "ai_specialist": "Prompt engineering + AI routing logic (can be backend lead)",
+      "demo_coordinator": "Data preparation + pitch deck + presentation practice"
+    }
+  },
+  
+  "demo_scenario": {
+    "description": "Complete production workflow demonstration",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Upload sample script",
+        "expected_result": "AI extracts scenes, locations, characters, VFX shots, estimates budget"
+      },
+      {
+        "step": 2,
+        "action": "AI Router analyzes requirements",
+        "expected_result": "Routes to appropriate workflows, triggers parallel processing"
+      },
+      {
+        "step": 3,
+        "action": "Show crew matching",
+        "expected_result": "AI suggests optimal crew based on availability, skills, budget"
+      },
+      {
+        "step": 4,
+        "action": "Display location recommendations",
+        "expected_result": "Map view with cost analysis, permit requirements"
+      },
+      {
+        "step": 5,
+        "action": "Generate shooting schedule",
+        "expected_result": "Optimized schedule with Gantt chart, considers weather, crew availability"
+      },
+      {
+        "step": 6,
+        "action": "Simulate budget change",
+        "expected_result": "Real-time alert, AI suggests cost-saving alternatives"
+      },
+      {
+        "step": 7,
+        "action": "Show dashboard overview",
+        "expected_result": "Live metrics, risk indicators, upcoming tasks, all workflows status"
+      }
+    ]
+  },
+  
+  "winning_factors": {
+    "innovation": [
+      "Multi-gateway input processing (5 different data sources)",
+      "AI-powered intelligent routing with context awareness",
+      "End-to-end production lifecycle automation",
+      "Predictive analytics and proactive alerts"
+    ],
+    "feasibility": [
+      "Uses existing AI APIs (no model training needed)",
+      "Leverages proven frameworks (FastAPI, React)",
+      "Pre-built UI components (Shadcn/ui)",
+      "Clear 24-hour implementation roadmap"
+    ],
+    "impact": [
+      "Saves 30-40% production coordination time",
+      "Reduces budget overruns through proactive monitoring",
+      "Eliminates permit/compliance oversights",
+      "Centralizes all production data in one platform"
+    ],
+    "scalability": [
+      "Modular workflow architecture",
+      "Cloud-native design",
+      "API-first approach",
+      "Multi-tenant ready"
+    ]
+  }
+}
