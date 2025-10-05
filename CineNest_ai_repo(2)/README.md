@@ -1,6 +1,6 @@
 # CineNest.ai
 
-**Elevator pitch:** CineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent  and efficient  Environment
+ CineNest.ai is an ai integrated film production system which aims to Transform film making into a fully automated , transparent  and efficient  Environment
 
 ## Team
 - **Adhil Rifayin k s** — Team Lead (AI resources specialist) — 007rifayinadhil@gmail.comm
@@ -59,6 +59,21 @@ pytest
 ## Deployment (Local Docker)
 See `deployment/docker-compose.yml` and `deployment/Dockerfile` for local deployment instructions.
 
+
+# n8n Workflow Helper Scripts
+
+Helper scripts for automating n8n workflow startup and database seeding, suitable for pipeline management in VFX/automation studios.
+
+## Features
+
+- start-workflow.sh: Launches an n8n workflow via HTTP webhook.
+- seed-db.sql: Seeds Postgres/MySQL database with sample data for workflow development.
+- Easily customize endpoints and payloads for your environment.
+
+## Usage
+
+- Edit endpoints and credentials in start-workflow.sh as needed.
+- Run seed script via your database CLI:
 ## Environment variables (example)
 - POSTGRES_USER
 - POSTGRES_PASSWORD
