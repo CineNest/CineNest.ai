@@ -1,0 +1,816 @@
+{
+  "name": "CineFlow AI - Main Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "script-upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "script_gateway_webhook",
+      "name": "Script Gateway Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "script-gateway"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crew-database",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "crew_gateway_webhook",
+      "name": "Crew Database Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 500],
+      "webhookId": "crew-gateway"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "location-database",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "location_gateway_webhook",
+      "name": "Location Database Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 700],
+      "webhookId": "location-gateway"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "legal-compliance",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "legal_gateway_webhook",
+      "name": "Legal Compliance Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 900],
+      "webhookId": "legal-gateway"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "budget-management",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "budget_gateway_webhook",
+      "name": "Budget Management Gateway",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 1100],
+      "webhookId": "budget-gateway"
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an AI router for a film production workflow system. Analyze incoming data and determine which workflows to trigger based on these rules:\n\n1. budget_threshold_exceeded → finance_workflow, budget_oversight (HIGH priority)\n2. permit_deadline_approaching → operations_workflow, admin_workflow (HIGH priority)\n3. crew_availability_conflict → hr_workflow, operations_workflow (MEDIUM priority)\n4. vfx_shot_identified → vfx_workflow, budget_oversight (MEDIUM priority)\n5. design_requirements_extracted → design_workflow (MEDIUM priority)\n6. contract_needs_approval → admin_workflow, finance_workflow (HIGH priority)\n\nAnalyze the input and output JSON with: {\"triggers\": [\"trigger_name\"], \"workflows\": [\"workflow_names\"], \"priority\": \"high/medium/low\", \"context\": \"summary\"}"
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "ai_router_agent",
+      "name": "AI Router Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const routingDecision = JSON.parse($input.first().json.message.content);\nconst workflows = routingDecision.workflows || [];\n\nconst output = [];\n\nif (workflows.includes('finance_workflow')) {\n  output.push({\n    json: {\n      workflow: 'finance_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('operations_workflow')) {\n  output.push({\n    json: {\n      workflow: 'operations_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('hr_workflow')) {\n  output.push({\n    json: {\n      workflow: 'hr_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('admin_workflow')) {\n  output.push({\n    json: {\n      workflow: 'admin_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('design_workflow')) {\n  output.push({\n    json: {\n      workflow: 'design_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('vfx_workflow')) {\n  output.push({\n    json: {\n      workflow: 'vfx_workflow',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nif (workflows.includes('budget_oversight')) {\n  output.push({\n    json: {\n      workflow: 'budget_oversight',\n      data: $input.first().json,\n      priority: routingDecision.priority,\n      trigger: routingDecision.triggers\n    }\n  });\n}\n\nreturn output;"
+      },
+      "id": "workflow_router",
+      "name": "Workflow Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "finance_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "finance"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "operations_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "operations"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "hr_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "hr"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "admin_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "admin"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "design_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "design"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "vfx_workflow"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "vfx"
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.workflow }}",
+                    "value2": "budget_oversight"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "budget_oversight"
+            }
+          ]
+        }
+      },
+      "id": "switch_workflows",
+      "name": "Switch Workflows",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a finance workflow automation assistant. Process the following tasks:\n1. Invoice processing: extract data, validate, match to budget, flag discrepancies\n2. Budget variance analysis: compare actual vs planned, generate report, recommend adjustments\n3. Payment scheduling: prioritize payments, check cashflow, schedule transfers\n4. Cost optimization: identify savings, suggest alternatives, negotiate rates\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "finance_workflow",
+      "name": "Finance Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 100],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an operations workflow automation assistant. Process the following tasks:\n1. Shoot schedule optimization: analyze script, optimize location order, minimize crew downtime, consider weather\n2. Equipment allocation: identify requirements, check availability, book rentals, track inventory\n3. Transportation logistics: route optimization, vehicle assignment, coordinate pickups\n4. Catering coordination: calculate meal counts, dietary accommodations, schedule deliveries\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "operations_workflow",
+      "name": "Operations Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 240],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an HR workflow automation assistant. Process the following tasks:\n1. Crew matching: analyze requirements, match skills, check availability, suggest candidates\n2. Timesheet processing: collect hours, validate overtime, calculate wages, flag union violations\n3. Onboarding automation: send contracts, collect documents, schedule orientations, setup payroll\n4. Performance tracking: collect feedback, generate reviews\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "hr_workflow",
+      "name": "HR Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 380],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an admin workflow automation assistant. Process the following tasks:\n1. Permit management: identify required permits, auto-fill applications, track status, send reminders\n2. Contract generation: select template, populate fields, route for approval, track signatures\n3. Insurance compliance: verify coverage, track certificates, alert renewals\n4. Document management: organize files, version control, access management\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "admin_workflow",
+      "name": "Admin Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 520],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a design workflow automation assistant. Process the following tasks:\n1. Production design breakdown: extract design requirements, categorize by department, estimate costs, assign designers\n2. Asset library management: tag assets, search optimization, version control, rights tracking\n3. Mood board generation: analyze script tone, curate references, generate color palettes\n4. Vendor coordination: match vendors, request quotes, track deliveries\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "design_workflow",
+      "name": "Design Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 660],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a VFX workflow automation assistant. Process the following tasks:\n1. VFX shot identification: scan script, identify vfx requirements, categorize complexity, estimate shots\n2. Vendor bidding: prepare shot packages, distribute to vendors, compare bids, recommend selection\n3. Shot tracking: monitor progress, flag delays, quality check alerts\n4. Asset delivery management: track deliverables, version control, approval routing\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "vfx_workflow",
+      "name": "VFX Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 800],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a budget oversight automation assistant. Process the following tasks:\n1. Real-time monitoring: aggregate all costs, update actuals, calculate variances, predict overruns\n2. Approval routing: identify threshold breaches, route to approvers, track decisions\n3. Financial forecasting: analyze burn rate, project final costs, scenario modeling\n\nOutput structured JSON with your analysis and recommendations."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "budget_oversight_workflow",
+      "name": "Budget Oversight Workflow",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1120, 940],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO workflow_results (workflow_name, data, priority, timestamp) VALUES ({{ $json.workflow }}, {{ JSON.stringify($json) }}, {{ $json.priority }}, {{ new Date().toISOString() }})"
+      },
+      "id": "save_to_database",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.sqlite",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowResults = $input.all();\n\nconst report = {\n  timestamp: new Date().toISOString(),\n  workflows_executed: workflowResults.length,\n  results: workflowResults.map(item => ({\n    workflow: item.json.workflow,\n    priority: item.json.priority,\n    summary: item.json.message?.content || item.json\n  })),\n  metrics: {\n    high_priority: workflowResults.filter(w => w.json.priority === 'high').length,\n    medium_priority: workflowResults.filter(w => w.json.priority === 'medium').length,\n    low_priority: workflowResults.filter(w => w.json.priority === 'low').length\n  }\n};\n\nreturn [{ json: report }];"
+      },
+      "id": "generate_report",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.metrics.high_priority }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check_high_priority",
+      "name": "Check High Priority Alerts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#production-alerts",
+        "text": "🚨 HIGH PRIORITY ALERTS\n\n{{ $json.results.filter(r => r.priority === 'high').map(r => `• ${r.workflow}: ${r.summary}`).join('\\n') }}",
+        "otherOptions": {}
+      },
+      "id": "send_slack_alert",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [2000, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@cineflow.ai",
+        "toEmail": "={{ $json.recipients }}",
+        "subject": "CineFlow Alert: High Priority Items Require Attention",
+        "text": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {}
+      },
+      "id": "send_email_alert",
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond_to_webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "gpt-4-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a script analysis AI. Extract the following from the uploaded script:\n- Scene breakdown with scene numbers, locations, and descriptions\n- Character analysis with main characters and their roles\n- Location requirements\n- Props identification\n- VFX requirements and complexity\n- Estimated duration per scene\n- Overall budget estimation\n\nReturn structured JSON format."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.body.script_content || JSON.stringify($json) }}"
+            }
+          ]
+        }
+      },
+      "id": "script_ai_parser",
+      "name": "Script AI Parser",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Script Gateway Webhook": {
+      "main": [
+        [
+          {
+            "node": "Script AI Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Script AI Parser": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crew Database Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Location Database Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Legal Compliance Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Management Gateway": {
+      "main": [
+        [
+          {
+            "node": "AI Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Router Agent": {
+      "main": [
+        [
+          {
+            "node": "Workflow Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Router": {
+      "main": [
+        [
+          {
+            "node": "Switch Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Workflows": {
+      "main": [
+        [
+          {
+            "node": "Finance Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Operations Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HR Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Design Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "VFX Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Budget Oversight Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Operations Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HR Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Design Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VFX Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Oversight Workflow": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Check High Priority Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check High Priority Alerts": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-02T00:00:00.000Z",
+  "versionId": "1"
+}
